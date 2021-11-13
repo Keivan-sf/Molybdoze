@@ -21,6 +21,7 @@
     "ffmpeg-static": "^4.4.0",
     "fluent-ffmpeg": "^2.1.2",
     "multer": "^1.4.3",
+    "mysql": "^2.18.1",
     "nanoid": "^3.1.30",
     "node-abort-controller": "^3.0.1",
     "node-fetch": "^3.0.0",
