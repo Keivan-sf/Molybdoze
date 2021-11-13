@@ -1,0 +1,216 @@
+html , body{
+    margin: 0px;
+    padding: 0px;
+}
+body{
+    background: #0D0D0D;
+}
+section.login-signup{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+div.login-signup{
+    width: 584px;
+    height: auto;
+    padding-bottom: 35px;
+    background: #161616;
+    border-radius: 50px;
+    overflow-y: hidden;
+}
+div.login-signup .social{
+    width: 81.8%;
+    margin: 0px auto 48px;
+    height: 123px;
+}
+#auth-icons{
+    width: 345px;
+    height: 55px;
+    margin: auto;
+}
+.auth-icon{
+    margin: 34px 0px 0px 0px;
+    width: 25%;
+    height: 55px;
+    background-size: 55px;
+    background-repeat: no-repeat;
+    background-position: center;
+    float: left;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: 0.2s;
+}
+.auth-icon:hover{
+    opacity: 1;
+    filter: grayscale(0);
+}
+.auth-icon:nth-child(1){
+    background-image: url('icons/google-auth.png');
+}
+.auth-icon:nth-child(2){
+    background-image: url('icons/facebook-auth.png');
+}
+.auth-icon:nth-child(3){
+    background-image: url('icons/twitter-auth.png');
+}
+.auth-icon:nth-child(4){
+    background-image: url('icons/github-auth.png');
+    margin-right: 0px;
+}
+#auth-login-devider{
+    margin-top: 34px;
+    width: 100%;
+    height: 1px;
+    background: #404040;
+    float: left;
+}
+
+/*  LOGIN <--> AUTH  DIVDER  */
+
+.login-signup form{
+    font-family: 'Roboto', sans-serif;
+    width: 478px;
+    margin: auto;
+    color: #fff;
+}
+.text-input-box{
+    margin-top: 20px;
+    height: 95px;
+}
+.text-input-box:nth-child(1){
+    margin-top: 0px;
+}
+.text-input-box .label{
+    color: #fff;
+}
+.text-input-box input[type="text"] , .text-input-box input[type="password"]{
+    width: 92%;
+    height: 45px;
+    background-color: #161616;
+    border: 1px solid #fff;
+    border-radius: 10px;
+    margin-top: 10px;
+    padding: 0px 4%;
+    transition: 0.2s;
+    color: #fff;
+}
+.text-input-box input[type="password"]{
+    letter-spacing: 4px;
+}
+.text-input-box input[type="text"]:focus , .text-input-box input[type="password"]:focus{
+    outline: none;
+    border: 1px solid #4BE400;
+    box-shadow:0px 0px 3.5px 2px rgba(75 , 228 , 0, 0.2) , inset 0px 0px 3.5px 2px rgba(75 , 228 , 0, 0.2);
+}
+
+/* Forgot Password */
+
+#forgot-pw{
+    padding-left: 2px;
+    opacity: 0.8;
+    margin-top: 5px;
+    font-size: 9pt;
+}
+
+#forgot-pw a{
+    color: #4BE400;
+}
+
+#login-options{
+    margin: 25px 0px 0px 3px;
+    height: auto;
+}
+
+.option-label{
+    cursor: pointer;
+    position: relative;
+}
+.option-label-txt{
+    margin-left: 30px;
+}
+.option-label:hover .checkmark-option{
+    border-color : #4BE400;
+    box-shadow: 0px 0px 3.5px 2px rgba(75 , 228 , 0, 0.2) , inset 0px 0px 3.5px 2px rgba(75 , 228 , 0, 0.2) ;
+}
+
+.option-label input:checked ~ .checkmark-option{
+    border-color : rgba(255 , 255 , 255, 0.2); 
+}
+
+.option-label input:checked ~ .checkmark-option:after{
+    opacity: 1;
+}
+
+.option-label input:checked ~ .checkmark-option:hover{
+    box-shadow: 0px 0px 3.5px 2px rgba(255 , 255 , 255, 0.2) , inset 0px 0px 3.5px 2px rgba(255 , 255 , 255, 0.2) ;
+
+}
+
+.login-signup input[type="checkbox"]{
+    position: absolute;
+    opacity: 0;
+    float:left;
+}
+
+.checkmark-option{
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+.checkmark-option:after{
+    content: "";
+    width: 6px;
+    height: 15px;
+    border-bottom: 3px solid #4BE400;
+    border-right: 3px solid #4BE400;
+    margin: -7px 0px 0px 7px;
+    transform: rotate(45deg);
+    position: absolute;
+    transition: 0.2s;
+    opacity: 0;
+}
+
+/* Buttons */
+
+.primiry-button{
+    border: none;
+    background-color: rgba(11, 154, 1, 1);
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15pt;
+    color: #fff;
+    width: 100%;
+    height: 70px;
+    margin: 35px auto;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.primiry-button:hover{
+    box-shadow: 0px 0px 15px 1px rgba(11, 154, 1, 0.4);
+}
+.primiry-button:focus{
+    border: none;
+    outline: none;
+}
+
+.secondary-button{
+    width: 100%;
+    height: 25px;
+    text-align: center;
+    color: #fff;
+}
+.secondary-button a{
+    transition: 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+.secondary-button a:hover{
+    text-decoration: underline;
+}

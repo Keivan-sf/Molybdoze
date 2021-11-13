@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="login.css" rel="stylesheet"/>
+        <link href="login-media-responsive.css" rel="stylesheet"/>
+        <script src="login.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        
+        <section class="login-signup">
+            <div class="login-signup">
+                <div class="social">
+                    <div id="auth-icons">
+                        <div class="auth-icon"></div>
+                        <div class="auth-icon"></div>
+                        <div class="auth-icon"></div>
+                        <div class="auth-icon"></div>
+                    </div>
+                    <div id="auth-login-devider"></div>
+                </div>
+                <form action="./login" method="POST">
+
+                    <div class="text-input-box">
+                        <div class="label">Email</div>
+                        <input name="email" type="text" hint="your email">
+                    </div>
+
+                    <div class="text-input-box">
+                        <div class="label">Password</div>
+                        <input name="password" type="password" hint="your email">
+                    </div>
+
+                    <div id="forgot-pw">Forgot your password? <a href="#"> Reset Password </a></div>
+                    <div id="login-options">
+                        <label class="option-label" for="rememberMe">
+                            <input type="checkbox" name="remeber" id="rememberMe"><span class="checkmark-option"></span>
+                            <span class="option-label-txt">Remember me</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="primiry-button">Login</button>
+                    <div class="secondary-button"><a href="/">Create a new account</a></div>
+                </form>
+            </div>
+        </section>
+
+    </body>
+
+</html>

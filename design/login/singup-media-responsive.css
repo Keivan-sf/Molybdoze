@@ -1,0 +1,71 @@
+@media(min-width: 0px){
+    div.login-signup{
+        width: 100%;
+        height: auto;
+        padding-bottom: 35px;
+        background: #161616;
+        border-radius: 50px;
+        overflow-y: hidden;
+    }
+    .login-signup form{
+        width: 90%;
+    }
+    .social{
+        width: 90%;
+    }
+    .auth-icon{
+        background-size: 35px;
+    }
+    #auth-icons{
+        width: 100%;
+    }
+}
+
+@media(min-width: 250px){
+    .auth-icon{
+        background-size: 45px;
+    }
+    #auth-icons{
+        width: 100%;
+    }
+}
+
+@media(min-width: 419px){
+    .auth-icon{
+        background-size: 55px;
+    }
+    #auth-icons{
+        width: 345px;
+    }
+}
+
+@media(min-width: 505px){
+    .login-signup form{
+        font-family: 'Roboto', sans-serif;
+        width: 476px;
+        margin: auto;
+        color: #fff;
+    }
+    .social{
+        width: 90%;
+    }
+    .auth-icon{
+        background-size: 55px;
+    }
+}
+
+
+@media(min-width: 588px){
+    div.login-signup{
+        width: 584px;
+    }
+}
+
+
+@media(max-height: 966px){
+    section.login-signup{
+        height: auto;
+        margin: 35px auto;
+        align-items: unset;
+    }
+}
