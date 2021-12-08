@@ -2,6 +2,12 @@
     "sql" : {
         "S0" : "Internal sql error made while adding a user (Empty Response)",
         "S1" : ""
+    },
+
+    "image" :{
+        "IMG0" : "No frame has been built",
+        "IMG1" : "sharp saving image error",
+        "IMG2" : "couldn't take screen shots from given timestamps via ffmpeg"
     }
 
 }
