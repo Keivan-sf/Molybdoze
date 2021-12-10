@@ -1,23 +1,163 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Testing</title>
-        <style>
-            body{
-                background-color: #000;
-            }
-        </style>
-        <script>
-            console.log(window.location.href)
-        </script>
-    </head>
-    <body>
-        <video autoplay muted="muted" controls>
-            <source src="/video_stream/Tehran?format=mp4" type="video/mp4">
-        </video>
-    </body>
+<head>
+    <link href="/resources/css/player.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    
+    <div class="videoPlayer">
 
-    <footer>
+        <div class="videoOverlay videoOverlayHover">
+            <div class="playPauseOverlay"></div>
+            <div class="bottomControls">
+                
+                <div class="bottom-controls-container">
+                    <div class="timestamp-container">
+                        <div class="move-along-pointer">
+                            <div class="vp-pointed-time">00:00:00</div>
+                        </div>
+                        <div class="video-timestamp">
+
+                            <div class="load-bars"><div class="laod-progress"></div></div>
+
+                            <div class="video-timestamp-juice"><div class="juice-pointer"></div><div class="juice-shadow"></div></div>
+                            
+                        </div>
+                    </div>
+                    <!-- <div class="bg"></div> --> 
+                     <div class="player-ico play-button"></div>
+                     <div class="player-ico skip-button"></div>
+                     <div class="volume-container">
+                         <div class="volume-row-container">
+                             <div class="player-ico volume-button"><div class="muteb muted-shape"></div></div>
+                             <div class="volume-input-container">
+                                 <input class="volume-input" type="range" value="0" min="0" max="100">
+                             </div>
+                         </div>
+                     </div>
+                     <div class="video-time-passed">2:53:01 / 4:34:12</div>
+                     <div class="right-controls-container">
+                         <div class="right-icon full-screen-icon"><div class="fsm-ico"></div></div>
+                         <div class="mdpl-setting-menu-area mdpl-main-menu-setting">
+
+                            <div class="mdpl-scroll">
+                                <div class="mdpl-setting-menu">
+
+                                     <!--
+                                       <div class="mdpl-settings-back">
+                                           <div class="mdpl-title-devideline"></div>
+                                           <div class="mdpl-settings-back-title">Select speed</div>
+                                           <div class="mdpl-settings-back-btn"></div>
+                                       </div>
+                                       <div class="mdpl-playback-show">2.4x</div>
+                                       <div class="mdpl-playback-range">
+                                           <div class="mdpl-playback-range-container">
+                                               <input type="range" class="mdpl-playback-input" oninput="videoControls.settings.menus.speed.input()" min="25" max="225" value="100"> 
+                                               <div class="mdpl-playback-reset" onclick="videoControls.settings.menus.speed.reset()">Reset</div>
+                                           </div>
+                                       </div>
+                                    --> 
+       
+                                       
+                                       
+       
+                                       
+       
+       
+                    <!--
+                                  
+       
+                                       <div class="mdpl-settings-back" onclick="videoControls.settings.navigate('main')">
+                                           <div class="mdpl-title-devideline"></div>
+                                           <div class="mdpl-settings-back-title">Qualities</div>
+                                           <div class="mdpl-settings-back-btn"></div>
+                                       </div>
+       
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="144p" onclick="videoControls.settings.menus.quality.userClick('144p')">
+                                           144p
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="240p" onclick="videoControls.settings.menus.quality.userClick('240p')">
+                                           240p
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="360p" onclick="videoControls.settings.menus.quality.userClick('360p')">
+                                           360p
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="480p" onclick="videoControls.settings.menus.quality.userClick('480p')">
+                                           480p
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="720p" onclick="videoControls.settings.menus.quality.userClick('720p')">
+                                           720p
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="1080p" onclick="videoControls.settings.menus.quality.userClick('1080p')">
+                                           1080p (source)
+                                        </div>
+                                        <div class="mdpl-setting-button mdpl-quality-btn" data-quality="auto" onclick="videoControls.settings.menus.quality.userClick()">
+                                           Auto
+                                           &nbsp; <span>✓ Current</span>
+                                        </div>
+                         -->             
+                                      
+       
+       
+                                       
+                                     
+                                           <div class="mdpl-setting-button" onclick="videoControls.settings.navigate('quality')">
+                                               <div class="mdpl-setting-btn-right">
+                                                   <div class="mdpl-setting-btn-arrow"></div>
+                                                   <div class="mdpl-setting-btn-des mdpl-setting-btn-secondarydes">1080p</div>
+                                                   <div class="mdpl-setting-btn-des">Auto</div>
+                                               </div>
+                                               <div class="mdpl-setting-btn-title">Qualities</div>
+                                           </div>
+                                           <div class="mdpl-setting-button">
+                                              <div class="mdpl-setting-btn-right">
+                                                  <div class="mdpl-setting-btn-des mdpl-setting-btn-secondarydes">None Available</div>
+                                              </div>
+                                              <div class="mdpl-setting-btn-title">Subtitle</div>
+                                           </div>
+                                           <div class="mdpl-setting-button" onclick="videoControls.settings.navigate('playback')">
+                                              <div class="mdpl-setting-btn-right">
+                                                  <div class="mdpl-setting-btn-arrow"></div>
+                                                  <div class="mdpl-setting-btn-des">Normal</div>
+                                              </div>
+                                              <div class="mdpl-setting-btn-title">Playback Speed</div>
+                                           </div>
+                                       
+                                       
+       
+       
+       
+                                    </div>
+                            </div>
+
+
+                         </div>
+                         <div class="right-icon mdpl-settings-icon"></div>
+                     </div>
+                 </div>
+
+                </div>
+        </div>
+
         
-    </footer>
-</html>
+        <video id="video_p" poster="[--VIDEO_POSTER]" width="100%" height="100%" src="/video_stream/[--VIDEO_ID]?quality=144p" type="video/mp4" muted autoplay>
+
+        </video>
+
+    </div>
+    <script>
+        // Load Data : 
+        const loadData = {
+            videoPlayer: {
+                id: '[--VIDEO_ID]',
+                qualities: [],
+                tsPreview : {},
+            },
+        }
+
+    </script>
+    <script src="/resources/js/player.js"></script>
+</body>
