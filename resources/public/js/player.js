@@ -1,5 +1,7 @@
+const VPSelector = '#video_p';
+
 const body = document.querySelector('body');
-const video = document.querySelector('#video_p');
+const video = document.querySelector(VPSelector);
 const videoPlayer = document.querySelector('.videoPlayer');
 const videoOverlay = document.querySelector('.videoOverlay')
 const playPause = document.querySelector('.play-button');
@@ -13,6 +15,13 @@ const juice = document.querySelector('.video-timestamp-juice');
 const timestamp_container = document.querySelector('.timestamp-container');
 const fullScreenButton = document.querySelector('.full-screen-icon');
 const progress_load_bars = document.querySelector('.load-bars');
+const preLoad = JSON.parse(video.dataset.set) || JSON.parse(video.getAttribute('data-set'));
+const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p']
+let vp_qs = Object.keys(preLoad.qualities);
+
+vp_qs.sort( (a , b) => Number(b.split('p')[0]) - Number(a.split('p')[0]) )
+
+console.log(vp_qs);
 
 let renderedData = {
 
@@ -42,8 +51,8 @@ let mdplSettings = {
 
         qualities : {
             selected : 'auto',
-            main : '480p',
-            sources : ['480p' , '360p' , '240p' , '144p'],
+            main : vp_qs[0],
+            sources : vp_qs,
             html : {},
         },
 
@@ -818,7 +827,7 @@ const videoControls = {
 
                     let currentTime = video.currentTime;
 
-                    video.src = `./${source === Qualities.main ? 'main' : source}.mp4`;
+                    video.src = preLoad.qualities[source];
                     
                     const cl = playPause.classList;
                     if(cl.contains('play-button-paused')) cl.remove('play-button-paused');

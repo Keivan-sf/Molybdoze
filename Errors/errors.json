@@ -8,6 +8,10 @@
         "IMG0" : "No frame has been built",
         "IMG1" : "sharp saving image error",
         "IMG2" : "couldn't take screen shots from given timestamps via ffmpeg"
+    },
+
+    "videos":{
+        "V01" : "No video has been found in database"
     }
 
 }
