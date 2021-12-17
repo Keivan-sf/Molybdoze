@@ -486,10 +486,26 @@ body{
     visibility: hidden;
     transition: 0s;
 }
+
+.mdpl-tspreview-container{
+    height: 90px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.mdpl-ts-preview{
+    background-color: #0D0D0D;
+    background-repeat: no-repeat;
+    border-radius: 7px;
+    border: 1px solid #fff;
+    height: 90px
+}
 .move-along-pointer .vp-pointed-time{
     display: flex;
     justify-content: center;
-    margin-top: 140px;
+    margin-top: 20px;
     font-size: 10pt;
     color: #fff;
     transition: 0s;

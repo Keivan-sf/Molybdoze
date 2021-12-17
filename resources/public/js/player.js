@@ -16,12 +16,52 @@ const timestamp_container = document.querySelector('.timestamp-container');
 const fullScreenButton = document.querySelector('.full-screen-icon');
 const progress_load_bars = document.querySelector('.load-bars');
 const preLoad = JSON.parse(video.dataset.set) || JSON.parse(video.getAttribute('data-set'));
+const mdpl_ratio = preLoad.resolution.width / preLoad.resolution.height;
+
+const mdpl_ts_info = {
+
+    low: {
+        width : Math.round(45 * mdpl_ratio),
+        height : 45
+    },
+
+    high: {
+        width : Math.round(90 * mdpl_ratio),
+        height : 90
+    },
+
+    element: document.querySelector('.mdpl-ts-preview'),
+
+    prevBg : '',
+
+    currentTsFrame : 0,
+
+    frame_length : 0,
+
+    frames_count : 0,
+
+    backgroundGenerator(frame1){
+        let frame = frame1 + 1;
+        
+        const target_pic = frame%100 > 0 ? Math.floor(frame / 100) : (frame/100) - 1;
+        const target_frame = frame%100 > 0 ? frame%100 : 100;
+        const top = target_frame%10 > 0 ? Math.floor(target_frame/10) : target_frame/10 - 1;
+        const left = target_frame%10 > 0 ? target_frame%10 - 1 : 9;
+
+        //console.log(`left x width : ${top} x ${}`
+
+        return `-${left * mdpl_ts_info.high.width}px -${top * mdpl_ts_info.high.height}px / ${mdpl_ts_info.high.width * 10}px auto url('${preLoad.tsPreview.low[target_pic]}'`
+
+    }
+    
+}
+
 const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p']
 let vp_qs = Object.keys(preLoad.qualities);
 
 vp_qs.sort( (a , b) => Number(b.split('p')[0]) - Number(a.split('p')[0]) )
 
-console.log(vp_qs);
+console.log(preLoad);
 
 let renderedData = {
 
@@ -456,6 +496,24 @@ const videoControls = {
         pointed_preview.time.innerHTML = utils.convertToTime(pointedTime);
         pointed_preview.el.style.left = `${(pos - start)}px`;
         pointed_preview.el.style.visibility = 'visible';
+        mdpl_ts_info.currentTsFrame = Math.floor(percentage * (mdpl_ts_info.frames_count / 100))
+        mdpl_ts_info.element.innerHTML = mdpl_ts_info.currentTsFrame;
+        const generatedBg =  mdpl_ts_info.backgroundGenerator(mdpl_ts_info.currentTsFrame);
+
+        if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
+        
+        mdpl_ts_info.prevBg = generatedBg;
+
+        const prevTsPreview = mdpl_ts_info.currentTsFrame;
+        setTimeout(() => {
+            if(prevTsPreview === mdpl_ts_info.currentTsFrame){
+                console.log('+')
+            }else{
+                console.log('-')
+            }
+        },3000)
+        
+
 
     },
 
@@ -923,7 +981,7 @@ const events = {
      */
 
     progress(){
-
+        // quality chase based o nthe time spent (speed) -- need to be developed
         progress_load_bars.innerHTML = '';
         const duration = video.duration;
         const timePercente = duration / 100;
@@ -1146,6 +1204,9 @@ video.addEventListener('timeupdate' , () =>{
         videoControls.hideOverlay()
         vp.firstTimeUpdate = false;
         vp.durationStr = utils.convertToTime(video.duration);
+        mdpl_ts_info.frame_length = video.duration < 2000 ? (video.duration > 200 ? Math.floor(video.duration/200) : 1) : 10;
+        mdpl_ts_info.frames_count = Math.floor(video.duration / mdpl_ts_info.frame_length);
+        mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
     }
 
     let newTime = `${utils.convertToTime(video.currentTime)} / ${vp.durationStr}`;
