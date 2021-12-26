@@ -40,20 +40,8 @@ const mdpl_ts_info = {
 
     frames_count : 0,
 
-    backgroundGenerator(frame1){
-        let frame = frame1 + 1;
-        
-        const target_pic = frame%100 > 0 ? Math.floor(frame / 100) : (frame/100) - 1;
-        const target_frame = frame%100 > 0 ? frame%100 : 100;
-        const top = target_frame%10 > 0 ? Math.floor(target_frame/10) : target_frame/10 - 1;
-        const left = target_frame%10 > 0 ? target_frame%10 - 1 : 9;
+    highGenerated : [],
 
-        //console.log(`left x width : ${top} x ${}`
-
-        return `-${left * mdpl_ts_info.high.width}px -${top * mdpl_ts_info.high.height}px / ${mdpl_ts_info.high.width * 10}px auto url('${preLoad.tsPreview.low[target_pic]}'`
-
-    }
-    
 }
 
 const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p']
@@ -87,6 +75,8 @@ let mdplSettings = {
             label : document.querySelector('.mdpl-playback-show'),
             input : document.querySelector('.mdpl-playback-input'),
             reset : document.querySelector('.mdpl-playback-reset'),
+            current : 1,
+            preview : null,
         },
 
         qualities : {
@@ -130,6 +120,7 @@ let vp = {
         tsForced : false,
         fullForced : false,
         prevID : '',
+        firstHide : true,
     },
    
 }
@@ -427,6 +418,32 @@ const utils = {
         return dateValue;
     },
 
+    backgroundGenerator(frame1 , highParam = false){
+        let high = highParam;
+
+        let frame = frame1 + 1;
+        
+        const calculatePic = number => frame%(number * number) > 0 ? Math.floor(frame / (number * number)) : (frame/(number * number)) - 1;
+
+        if(!highParam && mdpl_ts_info.highGenerated.includes(calculatePic(5))) high = true;
+        
+        let calc = high ? 5 : 10;
+
+        const target_pic = calculatePic(calc);
+
+        if(high && !mdpl_ts_info.highGenerated.includes(target_pic)) mdpl_ts_info.highGenerated.push(target_pic);
+
+        const target_frame = frame%(calc * calc) > 0 ? frame%(calc * calc) : (calc * calc);
+        const top = target_frame%calc > 0 ? Math.floor(target_frame/calc) : target_frame/calc - 1;
+        const left = target_frame%calc > 0 ? target_frame%calc - 1 : (calc - 1);
+        const bg = preLoad.tsPreview[(high ? 'high' : 'low')][target_pic];
+
+        const image = document.createElement('image');
+        image.style.background = bg;
+        return `url('${bg}') -${left * mdpl_ts_info.high.width}px -${top * mdpl_ts_info.high.height}px / ${mdpl_ts_info.high.width * calc}px auto`
+
+    },
+
     /**
      * 
      * @param {*} element 
@@ -497,8 +514,8 @@ const videoControls = {
         pointed_preview.el.style.left = `${(pos - start)}px`;
         pointed_preview.el.style.visibility = 'visible';
         mdpl_ts_info.currentTsFrame = Math.floor(percentage * (mdpl_ts_info.frames_count / 100))
-        mdpl_ts_info.element.innerHTML = mdpl_ts_info.currentTsFrame;
-        const generatedBg =  mdpl_ts_info.backgroundGenerator(mdpl_ts_info.currentTsFrame);
+      //  mdpl_ts_info.element.innerHTML = mdpl_ts_info.currentTsFrame;
+        const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame);
 
         if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
         
@@ -507,11 +524,11 @@ const videoControls = {
         const prevTsPreview = mdpl_ts_info.currentTsFrame;
         setTimeout(() => {
             if(prevTsPreview === mdpl_ts_info.currentTsFrame){
-                console.log('+')
-            }else{
-                console.log('-')
+                const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true);
+                if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
+                mdpl_ts_info.prevBg = generatedBg;
             }
-        },3000)
+        },300)
         
 
 
@@ -555,19 +572,35 @@ const videoControls = {
 
     /**
      * @description Toggles between playing and pausing the video
+     * @param {"play" | "pause"} [force] Optional , if you want to force play/pause the video
      */
 
-    togglePausePlay(){
+    togglePausePlay(force = null){
+
         const cl = playPause.classList;
+
+        if(force){
+            if(force === 'play') return play();
+            if(force === 'pause') return pause();
+        }
+
         if(video.paused){ 
-            if(cl.contains('play-button-paused')) cl.remove('play-button-paused');
-            video.play();
-    
+            play();
         }else{
+            pause();
+        }
+
+        function pause(){
+            if(!videoOverlay.classList.contains('mdpl-overlay-paused-shadow')) videoOverlay.classList.add('mdpl-overlay-paused-shadow');
             cl.add('play-button-paused');
             video.pause();
         }
 
+        function play(){
+            if(videoOverlay.classList.contains('mdpl-overlay-paused-shadow')) videoOverlay.classList.remove('mdpl-overlay-paused-shadow');
+            if(cl.contains('play-button-paused')) cl.remove('play-button-paused');
+            video.play();
+        }
         
     },
 
@@ -579,12 +612,17 @@ const videoControls = {
      */
 
     skip(seconds){
+
+        if(video.currentTime + seconds >= video.duration) video.currentTime = video.duration;
+        if(video.currentTime + seconds <= 0) video.currentTime = 0;
+
         if(video.currentTime + seconds < video.duration &&  video.currentTime + seconds > 0){
             video.currentTime += seconds;
             vp.overlay.lastMove = new Date();
             videoOverlay.classList.add('videoOverlayHover');
             videoControls.hideOverlay()
         }
+        
     },
 
     /**
@@ -598,10 +636,10 @@ const videoControls = {
 
             main: {
 
-                main_class : 'mdpl-main-menu-setting',
+                main_class : null,
 
                 children : [
-                    new htmlRendering.elements.Button({onclick : "videoControls.settings.navigate('quality')"})
+                    new htmlRendering.elements.Button({onclick : "videoControls.settings.navigate('quality')" , class: "mdpl-mm-clickable-quality"})
                     .setTitle('Qualities')
                     .setDescription('Auto')
                     .setSecondary('1080p')
@@ -612,14 +650,14 @@ const videoControls = {
     
                     new htmlRendering.elements.Button()
                     .setTitle('Subtitle')
-                    .setSecondary('None Available' , {style : "margin-right: 20px"})
+                    .setSecondary('None Available' , {style : "margin-right: 20px" , class: "mdpl-mm-clickable-subtitle"})
                     .create()
     
                     ,
     
-                    new htmlRendering.elements.Button({onclick : "videoControls.settings.navigate('playback')"})
+                    new htmlRendering.elements.Button({onclick : "videoControls.settings.navigate('playback')" , class: "mdpl-mm-clickable-playback"})
                     .setTitle('Playback Speed')
-                    .setDescription('Normal')
+                    .setDescription(`${mdplSettings.menus.speed.current === 1 ? 'Normal' : (mdplSettings.menus.speed.current + ' x')}`)
                     .setArrow()
                     .create()
                 ]
@@ -628,7 +666,7 @@ const videoControls = {
 
             quality :{
 
-                main_class: 'mdpl-main-menu-setting' ,
+                main_class: 'mdpl-mm-quality' ,
 
                 children: [
 
@@ -653,7 +691,7 @@ const videoControls = {
 
             playback: {
 
-                main_class: 'mdpl-main-menu-setting' ,
+                main_class: 'mdpl-mm-playback' ,
 
                 children : [
 
@@ -766,11 +804,11 @@ const videoControls = {
 
             let target = this.elements[navID];
 
-            let classSet = ['mdpl-setting-menu-area'];
+            let classSet = ['mdpl-setting-menu-area' , 'mdpl-main-menu-setting'];
 
             if(!hidden) classSet.push('mdpl-setting-menu-show');
 
-            if(target.main_class != 'mdpl-setting-menu-area') classSet.push(target.main_class);
+            if(target.main_class) classSet.push(target.main_class);
 
             let cl = mdplSettings.pannel.classList;
 
@@ -808,6 +846,28 @@ const videoControls = {
                 mdplSettings.container = newMenu;
             })
             
+            if(navID === 'main')
+            {
+
+                if(!mdplSettings.menus.speed.preview) mdplSettings.menus.speed.preview = document.querySelector('.mdpl-mm-clickable-playback .mdpl-setting-btn-des');
+                mdplSettings.menus.speed.preview.innerHTML = (mdplSettings.menus.speed.current === 1 ? 'Normal' : mdplSettings.menus.speed.current + ' x');
+
+
+                const selectedQuality = mdplSettings.menus.qualities.selected;
+
+                const mdplQQ = document.querySelector('.mdpl-mm-clickable-quality .mdpl-setting-btn-secondarydes');
+                const mdplAuto = document.querySelectorAll('.mdpl-mm-clickable-quality .mdpl-setting-btn-des')[1];
+
+                if(selectedQuality != 'auto'){
+                    mdplAuto.innerHTML = '';
+                    mdplQQ.innerHTML = selectedQuality;
+                }else{
+                    mdplAuto.innerHTML = 'Auto';
+                    mdplQQ.innerHTML = '144p';
+                }
+                
+            }
+
             mdplSettings.menus.currentMenu = navID;
 
         },
@@ -826,7 +886,9 @@ const videoControls = {
                     if(!mdplSettings.menus.speed.label) mdplSettings.menus.speed.label = document.querySelector('.mdpl-playback-show');
 
                     let val = mdplSettings.menus.speed.input.value;
+                    if(val < 25 || val > 255) return console.log('The value of playback speed cannot be less tan 25 or more than 255');
                     val = Math.floor(val / 10) / 10;
+                    mdplSettings.menus.speed.current = val;
                     video.playbackRate = val;
                     mdplSettings.menus.speed.label.innerHTML = val + ' x';
 
@@ -844,6 +906,7 @@ const videoControls = {
                     if(!mdplSettings.menus.speed.input) mdplSettings.menus.speed.input = document.querySelector('.mdpl-playback-input');
                     if(!mdplSettings.menus.speed.label) mdplSettings.menus.speed.label = document.querySelector('.mdpl-playback-show');
                     mdplSettings.menus.speed.input.value = 100;
+                    mdplSettings.menus.speed.current = 1;
                     mdplSettings.menus.speed.label.innerHTML = '1 x';
 
                 }
@@ -885,12 +948,15 @@ const videoControls = {
 
                     let currentTime = video.currentTime;
 
+                    const pausedStatus = video.paused;
+
                     video.src = preLoad.qualities[source];
                     
                     const cl = playPause.classList;
                     if(cl.contains('play-button-paused')) cl.remove('play-button-paused');
 
-                    video.currentTime = currentTime;     
+                    video.currentTime = currentTime;
+                    videoControls.togglePausePlay(pausedStatus ? 'pause' : 'play');
 
                     if(!Qualities.html.length) {
 
@@ -947,6 +1013,8 @@ const videoControls = {
 
         if(vp.overlay.fullForced) return;
 
+        if(video.paused) return;
+
         if(withoutTimer) return hideNow();
 
         await utils.sleep(3000).then(hideNow);
@@ -956,11 +1024,9 @@ const videoControls = {
             const difference = new Date().getTime() - vp.overlay.lastMove.getTime();
             if(difference >= 2999){
                 vp.overlay.tsForced = false , vp.overlay.fullForced = false;
-                    
                 const classList = videoOverlay.classList;
                 if(classList.contains('videoOverlayHover')) classList.remove('videoOverlayHover');
                 videoControls.settings.hide();
-             
             }
         }
 
@@ -975,21 +1041,23 @@ const videoControls = {
 
 const events = {
     
+    
     /**
-     * @description Shows mutltiple loaded time ranges on the loading progress bar , everytime the video loading makes a progress
-     * @description Will be called whenever 'progress' event is triggered in video element
+     * Shows __mutltiple__ loaded time ranges on the loading progress bar , everytime a chunk is downloaded
+     * 
+     * Will be called whenever `progress` event is triggered in video element
      */
 
-    progress(){
+    multipleProgress(){
         // quality chase based o nthe time spent (speed) -- need to be developed
         progress_load_bars.innerHTML = '';
         const duration = video.duration;
         const timePercente = duration / 100;
-
         for(let count = 0; count < video.buffered.length; count++){
 
             let start = video.buffered.start(count);
             let end = video.buffered.end(count);
+
         //    const timestamp_width = timestamp_el.offsetWidth;
             const left_margin = start / timePercente;
             const bar_width = (end - start) / timePercente;
@@ -1001,6 +1069,63 @@ const events = {
 
         }
     },
+
+    /**
+     * Shows __only one__ loaded time range on the loading progress bar , everytime a chunk is downloaded
+     * 
+     * Will be called whenever `progress` event is triggered in video element
+     */
+
+    progress(){
+        // quality chase based o nthe time spent (speed) -- need to be developed
+        progress_load_bars.innerHTML = '';
+        const duration = video.duration;
+        const timePercente = duration / 100;
+        if(video.buffered.length > 0) {
+            const start = 0;
+            const end = video.buffered.end(video.buffered.length-1);
+            const left_margin = start / timePercente;
+            const bar_width = (end - start) / timePercente;
+
+            const load_bar = document.createElement('div');
+            load_bar.setAttribute('class' , 'load-progress');
+            load_bar.setAttribute('style' , `margin-left: ${left_margin}%; width: ${bar_width}%;`);
+            progress_load_bars.appendChild(load_bar);
+
+        }
+
+    },
+
+    /**
+     * - will be called whenever video.on('timeupdate') is triggered
+     * - updates timestamp and juice position
+     */
+
+    timeUpdate(){
+        if(vp.firstTimeUpdate){
+            videoControls.hideOverlay()
+            vp.firstTimeUpdate = false;
+            vp.durationStr = utils.convertToTime(video.duration);
+            mdpl_ts_info.frame_length = video.duration < 2000 ? (video.duration > 200 ? Math.floor(video.duration/200) : 1) : 10;
+            mdpl_ts_info.frames_count = Math.floor(video.duration / mdpl_ts_info.frame_length);
+            mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
+        }
+    
+        let newTime = `${utils.convertToTime(video.currentTime)} / ${vp.durationStr}`;
+    
+        if(newTime != vp.savedTime) timePassed.innerHTML = newTime;
+    
+        vp.savedTime = newTime;
+    
+        var juicePosition = video.currentTime * 100 / video.duration;
+        juice.style.width = juicePosition +  '%';
+        
+        if(video.ended) {
+            console.log('ended');
+            videoControls.togglePausePlay("pause");
+            video.pause();
+        }
+    }
 
     // ...
 
@@ -1092,7 +1217,7 @@ videoPlayer.onmousemove = () =>{
 }
 
 videoPlayer.onmouseout = () => {
-    vp.overlay.onmouseOver = false; 
+    vp.overlay.onmouseOver = false;
     videoControls.hideOverlay(true);
 }
 
@@ -1151,10 +1276,13 @@ body.onmousemove = (mouseEvent) =>{
         juice.style.width = percentage + '%';
         videoControls.pointer_position(mouseEvent);
         video.currentTime = pointedTime; 
-
+        videoOverlay.classList.add('mdpl-overlay-full-shadow');
     }else{
 
+        if(videoOverlay.classList.contains('mdpl-overlay-full-shadow')) videoOverlay.classList.remove('mdpl-overlay-full-shadow');
+
         if(vp.overlay.onmouseOver){
+            vp.overlay.firstHide = false;
             videoOverlay.classList.add('videoOverlayHover');
             if(!vp.tshoverOut){
                 videoControls.pointer_position(mouseEvent);
@@ -1162,7 +1290,7 @@ body.onmousemove = (mouseEvent) =>{
                 pointed_preview.el.style.visibility = 'hidden';
             }
             videoControls.hideOverlay()
-        }else if(!vp.overlay.tsForced && !vp.overlay.fullForced){
+        }else if(!vp.overlay.tsForced && !vp.overlay.fullForced && !vp.overlay.firstHide){
             pointed_preview.el.style.visibility = 'hidden';
             videoControls.hideOverlay(true);
         }else{
@@ -1198,31 +1326,7 @@ body.onmouseup = () =>{
 video_volume.oninput = () => videoControls.changeVol(video_volume.value / 100);
 
 
-video.addEventListener('timeupdate' , () =>{
-
-    if(vp.firstTimeUpdate){
-        videoControls.hideOverlay()
-        vp.firstTimeUpdate = false;
-        vp.durationStr = utils.convertToTime(video.duration);
-        mdpl_ts_info.frame_length = video.duration < 2000 ? (video.duration > 200 ? Math.floor(video.duration/200) : 1) : 10;
-        mdpl_ts_info.frames_count = Math.floor(video.duration / mdpl_ts_info.frame_length);
-        mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
-    }
-
-    let newTime = `${utils.convertToTime(video.currentTime)} / ${vp.durationStr}`;
-
-    if(newTime != vp.savedTime) timePassed.innerHTML = newTime;
-
-    vp.savedTime = newTime;
-
-    var juicePosition = video.currentTime * 100 / video.duration;
-    juice.style.width = juicePosition +  '%';
-    
-    if(video.ended) {
-        console.log('ended')
-        video.pause();
-    }
-})
+video.addEventListener('timeupdate' , events.timeUpdate)
 
 fullScreenButton.onclick = () => videoControls.toggleFullScreen(videoPlayer);
 
@@ -1246,23 +1350,27 @@ document.addEventListener('webkitfullscreenchange' , fulScreenTrigger);
 
 document.addEventListener('keydown' , function(event){
 
-    if(event.key === ' ' || event.key === 'k'){
-        videoControls.togglePausePlay();
-        if(video.paused){
-            vp.overlay.lastMove = new Date();
-            videoOverlay.classList.add('videoOverlayHover');
-            videoControls.hideOverlay()
-        }
-    }
+  //  console.log(event.key)
 
     switch(event.key){
 
-        case '[' :
+        case ' ':
+        case 'k':
+            videoControls.togglePausePlay();
+            if(video.paused){
+                vp.overlay.lastMove = new Date();
+                videoOverlay.classList.add('videoOverlayHover');
+                videoControls.hideOverlay()
+            } 
+            break;
 
+        case 'ArrowLeft':
+        case '[' :
             videoControls.skip(-10);
 
             break;
 
+        case 'ArrowRight':
         case ']' :
 
             videoControls.skip(20);
