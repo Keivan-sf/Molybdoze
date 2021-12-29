@@ -1,7 +1,7 @@
 {
     "sql" : {
         "S0" : "Internal sql error made while adding a user (Empty Response)",
-        "S1" : ""
+        "S1" : "Internal sql error made while adding a new video"
     },
 
     "image" :{
@@ -11,7 +11,8 @@
     },
 
     "videos":{
-        "V01" : "No video has been found in database"
+        "V01" : "No video has been found in database",
+        "V02" : "Duration must be provided"
     }
 
 }

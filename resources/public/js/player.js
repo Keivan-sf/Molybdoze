@@ -13,6 +13,7 @@ const overlayPuaseResume = document.querySelector('.playPauseOverlay');
 const timestamp_el = document.querySelector('.video-timestamp');
 const juice = document.querySelector('.video-timestamp-juice');
 const timestamp_container = document.querySelector('.timestamp-container');
+const mdpl_on_duration = document.querySelector('.mdpl-change-preview');
 const fullScreenButton = document.querySelector('.full-screen-icon');
 const progress_load_bars = document.querySelector('.load-bars');
 const preLoad = JSON.parse(video.dataset.set) || JSON.parse(video.getAttribute('data-set'));
@@ -36,6 +37,8 @@ const mdpl_ts_info = {
 
     currentTsFrame : 0,
 
+    currentObject : null,
+
     frame_length : 0,
 
     frames_count : 0,
@@ -44,7 +47,7 @@ const mdpl_ts_info = {
 
 }
 
-const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p']
+const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p'];
 let vp_qs = Object.keys(preLoad.qualities);
 
 vp_qs.sort( (a , b) => Number(b.split('p')[0]) - Number(a.split('p')[0]) )
@@ -114,6 +117,8 @@ let vp = {
     canPlayUnmuted : false,
     tshoverOut : true,
     firstTimeUpdate : true,
+    onDurationChange : false,
+    progressLoadMade : 0,
     overlay : {
         onmouseOver : false,
         lastMove : new Date(null),
@@ -386,9 +391,11 @@ const utils = {
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve , ms)),
 
     /**
-     * @description converts seconds to HH:MM:SS format
-     * @description the returned string will include at least 5 characters  e.g. 00:01
-     * @description the senonds parameter must be less than 86,400 (24 hours)
+     * converts seconds to `HH:MM:SS` format
+     * 
+     * the returned string will include at least __5__ characters  e.g. `00:01`
+     * 
+     * the senonds parameter must be less than `86,400` *(24 hours)*
      * @param {Number} seconds 
      * @returns {String} HH:MM:SS
      */
@@ -422,7 +429,9 @@ const utils = {
         let high = highParam;
 
         let frame = frame1 + 1;
-        
+        if(mdpl_ts_info.frame_length < frame) frame = frame1;
+
+
         const calculatePic = number => frame%(number * number) > 0 ? Math.floor(frame / (number * number)) : (frame/(number * number)) - 1;
 
         if(!highParam && mdpl_ts_info.highGenerated.includes(calculatePic(5))) high = true;
@@ -434,23 +443,42 @@ const utils = {
         if(high && !mdpl_ts_info.highGenerated.includes(target_pic)) mdpl_ts_info.highGenerated.push(target_pic);
 
         const target_frame = frame%(calc * calc) > 0 ? frame%(calc * calc) : (calc * calc);
-        const top = target_frame%calc > 0 ? Math.floor(target_frame/calc) : target_frame/calc - 1;
+        let top = target_frame%calc > 0 ? Math.floor(target_frame/calc) : target_frame/calc - 1;
+        
         const left = target_frame%calc > 0 ? target_frame%calc - 1 : (calc - 1);
         const bg = preLoad.tsPreview[(high ? 'high' : 'low')][target_pic];
 
-        const image = document.createElement('image');
-        image.style.background = bg;
-        return `url('${bg}') -${left * mdpl_ts_info.high.width}px -${top * mdpl_ts_info.high.height}px / ${mdpl_ts_info.high.width * calc}px auto`
+        const image = document.createElement('image'); // loads the image before showing it on page DOES IT EVEN WORK?
+        image.src = bg;
 
-    },
+        const durationChange = {
+            el_width : video.clientHeight * mdpl_ratio,
+            el_hight : video.clientHeight,
+        }
 
-    /**
-     * 
-     * @param {*} element 
-     * @param {*} child 
-     */
+        const config = {
+            left : -left * mdpl_ts_info.high.width,
+            top : -top * mdpl_ts_info.high.height,
+            width : mdpl_ts_info.high.width,
+            onDuration : {
+                el_width : durationChange.el_width,
+                el_hight : durationChange.el_hight,
+                bg_width : durationChange.el_width * calc,
+                left : -left * durationChange.el_width,
+                top : -top * durationChange.el_hight,
+            },
+            high,
+        }
 
-    appendElements(element , child){
+        const object = {
+            ts : `url('${bg}') ${config.left}px ${config.top}px / ${config.width * calc}px auto`,
+            onDuration : `url('${bg}') ${config.onDuration.left}px ${config.onDuration.top}px / ${config.onDuration.bg_width}px auto`,
+            config,
+        }
+
+        mdpl_ts_info.currentObject = object;
+
+        return object;
 
     },
 
@@ -515,7 +543,7 @@ const videoControls = {
         pointed_preview.el.style.visibility = 'visible';
         mdpl_ts_info.currentTsFrame = Math.floor(percentage * (mdpl_ts_info.frames_count / 100))
       //  mdpl_ts_info.element.innerHTML = mdpl_ts_info.currentTsFrame;
-        const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame);
+        const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame).ts;
 
         if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
         
@@ -524,7 +552,7 @@ const videoControls = {
         const prevTsPreview = mdpl_ts_info.currentTsFrame;
         setTimeout(() => {
             if(prevTsPreview === mdpl_ts_info.currentTsFrame){
-                const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true);
+                const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true).ts;
                 if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
                 mdpl_ts_info.prevBg = generatedBg;
             }
@@ -1041,7 +1069,6 @@ const videoControls = {
 
 const events = {
     
-    
     /**
      * Shows __mutltiple__ loaded time ranges on the loading progress bar , everytime a chunk is downloaded
      * 
@@ -1054,10 +1081,8 @@ const events = {
         const duration = video.duration;
         const timePercente = duration / 100;
         for(let count = 0; count < video.buffered.length; count++){
-
             let start = video.buffered.start(count);
             let end = video.buffered.end(count);
-
         //    const timestamp_width = timestamp_el.offsetWidth;
             const left_margin = start / timePercente;
             const bar_width = (end - start) / timePercente;
@@ -1077,11 +1102,14 @@ const events = {
      */
 
     progress(){
+        console.log('here')
         // quality chase based o nthe time spent (speed) -- need to be developed
         progress_load_bars.innerHTML = '';
         const duration = video.duration;
         const timePercente = duration / 100;
         if(video.buffered.length > 0) {
+            vp.progressLoadMade++;
+            console.log('here1')
             const start = 0;
             const end = video.buffered.end(video.buffered.length-1);
             const left_margin = start / timePercente;
@@ -1103,12 +1131,9 @@ const events = {
 
     timeUpdate(){
         if(vp.firstTimeUpdate){
-            videoControls.hideOverlay()
+            videoControls.hideOverlay();
             vp.firstTimeUpdate = false;
-            vp.durationStr = utils.convertToTime(video.duration);
-            mdpl_ts_info.frame_length = video.duration < 2000 ? (video.duration > 200 ? Math.floor(video.duration/200) : 1) : 10;
-            mdpl_ts_info.frames_count = Math.floor(video.duration / mdpl_ts_info.frame_length);
-            mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
+           // if(vp.progressLoadMade < 1) events.
         }
     
         let newTime = `${utils.convertToTime(video.currentTime)} / ${vp.durationStr}`;
@@ -1275,12 +1300,23 @@ body.onmousemove = (mouseEvent) =>{
         videoOverlay.classList.add('videoOverlayHover');
         juice.style.width = percentage + '%';
         videoControls.pointer_position(mouseEvent);
-        video.currentTime = pointedTime; 
         videoOverlay.classList.add('mdpl-overlay-full-shadow');
+        video.classList.add('mdpl-no-opacity');
+        mdpl_on_duration.style.opacity = 1;
+        vp.onDurationChange = true;
+        mdpl_on_duration.style.background = mdpl_ts_info.currentObject.onDuration;
+        
+
     }else{
 
-        if(videoOverlay.classList.contains('mdpl-overlay-full-shadow')) videoOverlay.classList.remove('mdpl-overlay-full-shadow');
+        if(!vp.firstTimeUpdate && vp.onDurationChange){
+            if(videoOverlay.classList.contains('mdpl-overlay-full-shadow')) videoOverlay.classList.remove('mdpl-overlay-full-shadow');
+            if(video.classList.contains('mdpl-no-opacity')) video.classList.remove('mdpl-no-opacity')
+            video.currentTime = pointedTime;
+            vp.onDurationChange = false;
+        }
 
+        mdpl_on_duration.style.opacity = 0;
         if(vp.overlay.onmouseOver){
             vp.overlay.firstHide = false;
             videoOverlay.classList.add('videoOverlayHover');
@@ -1344,6 +1380,13 @@ document.addEventListener('fullscreenchange' , fulScreenTrigger);
 document.addEventListener('webkitfullscreenchange' , fulScreenTrigger);
 
 
+const firstTimeLoads = (function(){
+    vp.durationStr = utils.convertToTime(preLoad.duration);
+    mdpl_ts_info.frame_length = preLoad.duration < 2000 ? (preLoad.duration > 200 ? Math.floor(preLoad.duration/200) : 1) : 10;
+    mdpl_ts_info.frames_count = Math.floor(preLoad.duration / mdpl_ts_info.frame_length);
+    mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
+    mdpl_on_duration.style.width = (video.clientHeight * mdpl_ratio) + 'px';
+})();
 
 
 // Key Controls :
