@@ -3,6 +3,8 @@ const app = express();
 const PORT = 3500;
 const { loadFiles } = require('./lib/utils/htmlUtils/htmlUtils.js');
 const { runSqlPool , createTables } = require('./lib/utils/databaseUtils/sqlutils.js');
+const fileValidating = require('./lib/Validators/fileValidator.js');
+fileValidating();
 let modifyTables = true;
 
 loadFiles();
