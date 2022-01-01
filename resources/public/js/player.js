@@ -425,7 +425,7 @@ const utils = {
         return dateValue;
     },
 
-    backgroundGenerator(frame1 , highParam = false){
+    async backgroundGenerator(frame1 , highParam = false){
         let high = highParam;
 
         let frame = frame1 + 1;
@@ -448,9 +448,6 @@ const utils = {
         const left = target_frame%calc > 0 ? target_frame%calc - 1 : (calc - 1);
         const bg = preLoad.tsPreview[(high ? 'high' : 'low')][target_pic];
 
-        const image = document.createElement('image'); // loads the image before showing it on page DOES IT EVEN WORK?
-        image.src = bg;
-
         const durationChange = {
             el_width : video.clientHeight * mdpl_ratio,
             el_hight : video.clientHeight,
@@ -471,12 +468,30 @@ const utils = {
         }
 
         const object = {
-            ts : `url('${bg}') ${config.left}px ${config.top}px / ${config.width * calc}px auto`,
-            onDuration : `url('${bg}') ${config.onDuration.left}px ${config.onDuration.top}px / ${config.onDuration.bg_width}px auto`,
+            ts : `#0D0D0D url('${bg}') ${config.left}px ${config.top}px / ${config.width * calc}px auto`,
+            onDuration : `#0D0D0D url('${bg}') ${config.onDuration.left}px ${config.onDuration.top}px / ${config.onDuration.bg_width}px auto`,
             config,
         }
 
         mdpl_ts_info.currentObject = object;
+
+        /**
+         * Loads the image before showing it on page
+         * 
+         * This avoids empty backgrounds when loading different quality/frames
+         */
+
+        let tbg = document.createElement('img'); 
+        tbg.src = bg;
+
+        await new Promise((resolve , reject)=>{
+            tbg.onload = () => {
+                console.log('loaded')
+                resolve('loaded')
+            }
+
+            tbg.onerror = () => reject('Connection problem');
+        }).catch(err => console.error('Conenction problem, Cannot load the image'))
 
         return object;
 
@@ -526,7 +541,7 @@ const videoControls = {
      * @description changes the position of the movable circle in timestamp
      */
 
-    pointer_position(mouseEvent){
+    async pointer_position(mouseEvent){
 
         const timestampWidth = timestamp_el.offsetWidth;
         let pos = mouseEvent.clientX - (timestamp_el.offsetLeft + videoPlayer.offsetLeft);
@@ -541,18 +556,17 @@ const videoControls = {
         pointed_preview.time.innerHTML = utils.convertToTime(pointedTime);
         pointed_preview.el.style.left = `${(pos - start)}px`;
         pointed_preview.el.style.visibility = 'visible';
-        mdpl_ts_info.currentTsFrame = Math.floor(percentage * (mdpl_ts_info.frames_count / 100))
-      //  mdpl_ts_info.element.innerHTML = mdpl_ts_info.currentTsFrame;
-        const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame).ts;
+        mdpl_ts_info.currentTsFrame = Math.floor(percentage * (mdpl_ts_info.frames_count / 100));
+        const prevTsPreview = mdpl_ts_info.currentTsFrame;
+        const generatedBg = (await utils.backgroundGenerator(mdpl_ts_info.currentTsFrame)).ts;
 
-        if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
+        if(mdpl_ts_info.prevBg !== generatedBg && prevTsPreview === mdpl_ts_info.currentTsFrame) mdpl_ts_info.element.style.background = generatedBg;
         
         mdpl_ts_info.prevBg = generatedBg;
 
-        const prevTsPreview = mdpl_ts_info.currentTsFrame;
-        setTimeout(() => {
+        setTimeout(async() => {
             if(prevTsPreview === mdpl_ts_info.currentTsFrame){
-                const generatedBg =  utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true).ts;
+                const generatedBg = (await utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true)).ts;
                 if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
                 mdpl_ts_info.prevBg = generatedBg;
             }
