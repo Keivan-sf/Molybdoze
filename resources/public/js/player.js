@@ -45,6 +45,8 @@ const mdpl_ts_info = {
 
     highGenerated : [],
 
+    durationChange : null,
+
 }
 
 const vp_standards = ['1080p' , '720p' , '480p' , '360p' , '244p' , '144p'];
@@ -448,21 +450,16 @@ const utils = {
         const left = target_frame%calc > 0 ? target_frame%calc - 1 : (calc - 1);
         const bg = preLoad.tsPreview[(high ? 'high' : 'low')][target_pic];
 
-        const durationChange = {
-            el_width : video.clientHeight * mdpl_ratio,
-            el_hight : video.clientHeight,
-        }
-
         const config = {
             left : -left * mdpl_ts_info.high.width,
             top : -top * mdpl_ts_info.high.height,
             width : mdpl_ts_info.high.width,
             onDuration : {
-                el_width : durationChange.el_width,
-                el_hight : durationChange.el_hight,
-                bg_width : durationChange.el_width * calc,
-                left : -left * durationChange.el_width,
-                top : -top * durationChange.el_hight,
+                el_width : mdpl_ts_info.durationChange.width,
+                el_hight : mdpl_ts_info.durationChange.height,
+                bg_width : mdpl_ts_info.durationChange.width * calc,
+                left : -left * mdpl_ts_info.durationChange.width,
+                top : -top * mdpl_ts_info.durationChange.height,
             },
             high,
         }
@@ -486,7 +483,6 @@ const utils = {
 
         await new Promise((resolve , reject)=>{
             tbg.onload = () => {
-                console.log('loaded')
                 resolve('loaded')
             }
 
@@ -495,6 +491,33 @@ const utils = {
 
         return object;
 
+    },
+
+    /**
+     * Used to update onduration preview demintions
+     */
+
+    update_onduration_size(){
+        const vpWidth = videoPlayer.clientWidth;
+        const vpHeight = videoPlayer.clientHeight;
+        const dynamicRatio = vpWidth / vpHeight;
+        let demintions;
+        if(dynamicRatio < mdpl_ratio){
+            demintions = {
+                width : vpWidth,
+                height : vpWidth / mdpl_ratio,
+            }
+        }else{
+            demintions = {
+                width : vpHeight * mdpl_ratio,
+                height : vpHeight,
+            }
+        }
+
+        mdpl_ts_info.durationChange = demintions;
+
+        mdpl_on_duration.style.width = demintions.width + 'px';
+        mdpl_on_duration.style.height = demintions.height + 'px';
     },
 
 }
@@ -1116,8 +1139,8 @@ const events = {
      */
 
     progress(){
-        console.log('here')
         // quality chase based o nthe time spent (speed) -- need to be developed
+        console.log('quality chase based o nthe time spent (speed) -- need to be developed')
         progress_load_bars.innerHTML = '';
         const duration = video.duration;
         const timePercente = duration / 100;
@@ -1309,8 +1332,8 @@ body.onmousemove = (mouseEvent) =>{
     pos = pos > timestampWidth ? timestampWidth : pos;
     let percentage = pos * 100 / timestampWidth;
     const pointedTime = percentage * (video.duration / 100);
-
     if(vp.tsOnMouseDown){
+        utils.update_onduration_size();
         videoOverlay.classList.add('videoOverlayHover');
         juice.style.width = percentage + '%';
         videoControls.pointer_position(mouseEvent);
@@ -1399,7 +1422,7 @@ const firstTimeLoads = (function(){
     mdpl_ts_info.frame_length = preLoad.duration < 2000 ? (preLoad.duration > 200 ? Math.floor(preLoad.duration/200) : 1) : 10;
     mdpl_ts_info.frames_count = Math.floor(preLoad.duration / mdpl_ts_info.frame_length);
     mdpl_ts_info.element.style.width = mdpl_ts_info.high.width + 'px';
-    mdpl_on_duration.style.width = (video.clientHeight * mdpl_ratio) + 'px';
+    utils.update_onduration_size();
 })();
 
 

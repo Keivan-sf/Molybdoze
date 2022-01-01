@@ -54,14 +54,18 @@ body{
     visibility: visible;
 }
 
+.mdpl-change-preview-ctn{
+    position: absolute;
+    height: 100%;
+    width: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .mdpl-change-preview{
     width: inherit;
     height: 100%;
-    position: absolute;
-    left: 0; 
-    right: 0; 
-    margin-left: auto; 
-    margin-right: auto; 
     opacity: 0;
 }
 
