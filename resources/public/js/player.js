@@ -132,6 +132,39 @@ let vp = {
    
 }
 
+/**
+ * Mdpl Progress ustils
+ * 
+ * Used to choose a quality based on network speed
+ */
+
+let mdplProgress = {
+    inRow : 0,
+    speed : 0,
+    time : null,
+    network : speed => {
+        const networks = {
+            0 : 144,
+            250 : 240,
+            350 : 360,
+            512 : 480,
+            700 : 720,
+            900 : 1080,
+        }
+        const sutibleQuality = (() => {
+            let main = 0;
+            Object.keys(networks).map(el => +el).forEach(s => {
+                if(s < speed) main = main < s ? s : main;
+            })
+            return networks[main];
+        })();
+
+        return sutibleQuality;
+    }
+}
+
+console.log(mdplProgress.network(1024))
+
 const El = class{
     
     /**
@@ -589,8 +622,9 @@ const videoControls = {
 
         setTimeout(async() => {
             if(prevTsPreview === mdpl_ts_info.currentTsFrame){
-                const generatedBg = (await utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true)).ts;
-                if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg;
+                const generatedBg = await utils.backgroundGenerator(mdpl_ts_info.currentTsFrame , true);
+                if(mdpl_ts_info.prevBg !== generatedBg) mdpl_ts_info.element.style.background = generatedBg.ts;
+                mdpl_on_duration.style.background = generatedBg.onDuration;
                 mdpl_ts_info.prevBg = generatedBg;
             }
         },300)
@@ -1139,8 +1173,21 @@ const events = {
      */
 
     progress(){
+        
+
         // quality chase based o nthe time spent (speed) -- need to be developed
-        console.log('quality chase based o nthe time spent (speed) -- need to be developed')
+      //  console.log('quality chase based o nthe time spent (speed) -- need to be developed')
+        mdplProgress.inRow++;
+        if(mdplProgress.inRow == 1) mdplProgress.time = new Date();
+        if(mdplProgress.inRow == 6){
+            let time = new Date().getTime() - mdplProgress.time.getTime();
+            time = (time / 1000) - (2*5/10);
+            const speed = (5 * 250 / time);
+            const source = mdplProgress.network(speed);
+            console.log(`Size:${5 * 250}\nTime: ${time}\nSpeed: ${speed}KBs\nSource: ${source}`);
+            mdplProgress.inRow = 0;
+        }
+
         progress_load_bars.innerHTML = '';
         const duration = video.duration;
         const timePercente = duration / 100;
@@ -1151,7 +1198,7 @@ const events = {
             const end = video.buffered.end(video.buffered.length-1);
             const left_margin = start / timePercente;
             const bar_width = (end - start) / timePercente;
-
+            console.log(end)
             const load_bar = document.createElement('div');
             load_bar.setAttribute('class' , 'load-progress');
             load_bar.setAttribute('style' , `margin-left: ${left_margin}%; width: ${bar_width}%;`);
